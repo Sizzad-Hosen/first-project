@@ -1,17 +1,27 @@
 import express, { Application, Request, Response } from 'express'
-import { StudentRoute } from './modules/student/student.route'
+
+import globalErrorHandler from './app/middlewares/globalErrorhandler'
+
+import router from './app/routes'
+import notFound from './app/middlewares/notFound'
+
 
 const app: Application = express()
 
 // Middleware to parse JSON request body
 app.use(express.json())
 
+
 // Application routes
-app.use('/api/v1/students', StudentRoute)
+// app.use('/api/v1/students', StudentRoute)
 
-app.get('/', (req: Request, res: Response) => {
-  const a = 10
-  res.send(`${a}`) // Send 'a' as a string to avoid issues
-})
+app.use('/api/v1',router)
 
-export default app
+app.use(globalErrorHandler)
+app.use(notFound)
+
+
+export default app;
+
+
+
