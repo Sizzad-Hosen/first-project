@@ -16,6 +16,7 @@ const userNameSchema = new Schema<TUsername>({
   firstName: {
     type: String,
     required: true,
+    unique:true,
     trim: true,
     validate: {
       validator: function (value) {
@@ -117,6 +118,10 @@ const studentSchema = new Schema<TStudent, StudentModel>({
   permanentAddress: {
     type: String,
     required: true,
+  },
+  addmissionSemester:{
+    type:Schema.Types.ObjectId,
+    ref:'AcademicSemester'
   },
   guardian: guardianSchema,
   profileImg:String,

@@ -29,6 +29,7 @@ interface TStudent {
   permanentAddress: string
   profileImg:string
   guardian: TGuardian
+  addmissionSemester:Types.ObjectId
   isDeleted:boolean
 }
 export default TStudent

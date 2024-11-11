@@ -1,26 +1,26 @@
+import { AcademicRoutes } from "../../modules/academicSemester/academicSemester.route";
 import { StudentRoute } from "../../modules/student/student.route";
 import { UserRoutes } from "../../modules/user/user.route";
-import {Router} from 'express';
-
+import { Router } from 'express';
 
 const router = Router();
 
 const moduleRoutes = [
     {
-        path:'/users',
-        route:UserRoutes,
+        path: '/users',
+        route: UserRoutes,
     },
     {
-        path:'/users',
-        route:StudentRoute,
+        path: '/students',
+        route: StudentRoute,
+    },
+    {
+        path: '/academic-semesters',
+        route: AcademicRoutes,
     }
-]
+];
 
-moduleRoutes.forEach((route)=>router.use(route.path, route.route))
-
-router.use('/users', UserRoutes);
-
-router.use('/students', StudentRoute)
-
+// Register each route in the `moduleRoutes` array
+moduleRoutes.forEach((route) => router.use(route.path, route.route));
 
 export default router;

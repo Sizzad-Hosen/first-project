@@ -87,6 +87,7 @@ const createStudentValidationSchema = z.object({
       .string()
       .min(1, { message: 'Permanent address is required' }),
     profileImg: z.string(),
+    addmissionSemester:z.string(),
     guardian: guardianValidationSchema,
     isDeleted: z.boolean().default(false),
   }),

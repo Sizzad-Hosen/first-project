@@ -6,10 +6,12 @@ import { model, Schema } from 'mongoose'
 import config from '../../app/config';
 
 
+h
 const userShema = new Schema<TUser>({
     id:{
         type:String,
         required:true,
+        unique:true,
 
     },
     password:{
