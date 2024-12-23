@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import Joi from 'joi'
 
 // Define the schema for the 'name' field
 const userNameValidationSchema = Joi.object({
@@ -21,23 +21,23 @@ const userNameValidationSchema = Joi.object({
       'string.pattern.base': 'Last name should contain only alphabets',
       'string.empty': 'Last name is required',
     }),
-});
+})
 
 // Define the schema for the 'guardian' field
 const guardianValidationSchema = Joi.object({
   fatherName: Joi.string().required().messages({
-    'string.empty': 'Father\'s name is required',
+    'string.empty': "Father's name is required",
   }),
   motherName: Joi.string().required().messages({
-    'string.empty': 'Mother\'s name is required',
+    'string.empty': "Mother's name is required",
   }),
   fatherOccupation: Joi.string().required().messages({
-    'string.empty': 'Father\'s occupation is required',
+    'string.empty': "Father's occupation is required",
   }),
   motherOccupation: Joi.string().required().messages({
-    'string.empty': 'Mother\'s occupation is required',
+    'string.empty': "Mother's occupation is required",
   }),
-});
+})
 
 // Define the main schema for the 'student' field
 const studentValidationSchema = Joi.object({
@@ -57,13 +57,10 @@ const studentValidationSchema = Joi.object({
     'any.required': 'Date of Birth is required',
   }),
 
-  email: Joi.string()
-    .email()
-    .required()
-    .messages({
-      'string.email': 'Email must be a valid email address',
-      'string.empty': 'Email is required',
-    }),
+  email: Joi.string().email().required().messages({
+    'string.email': 'Email must be a valid email address',
+    'string.empty': 'Email is required',
+  }),
 
   contactNo: Joi.string()
     .regex(/^\d{10}$/) // Assumes contact number is 10 digits
@@ -77,7 +74,8 @@ const studentValidationSchema = Joi.object({
     .regex(/^\d{10}$/)
     .required()
     .messages({
-      'string.pattern.base': 'Emergency contact number must be exactly 10 digits',
+      'string.pattern.base':
+        'Emergency contact number must be exactly 10 digits',
       'string.empty': 'Emergency contact number is required',
     }),
 
@@ -94,6 +92,6 @@ const studentValidationSchema = Joi.object({
   }),
 
   guardian: guardianValidationSchema.required(),
-});
+})
 
-export default studentValidationSchema;
+export default studentValidationSchema

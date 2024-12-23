@@ -1,16 +1,21 @@
-import express from 'express'
-import { StudentController } from './student.controller'
+import express from 'express';
 
-const router = express.Router()
+import { StudentControllers } from './student.controller';
+import { updateStudentValidationSchema } from './student.validation';
+import validateRequest from '../../app/middlewares/validateRequest';
 
-// router.post('/create-student', StudentController.createStudent)
+const router = express.Router();
 
-router.get('/', StudentController.getAllStudent)
+router.get('/:studentId', StudentControllers.getSingleStudent);
 
-router.get('/:studentId', StudentController.getIdStudent)
+router.patch(
+  '/:studentId',
+  validateRequest(updateStudentValidationSchema),
+  StudentControllers.updateStudent,
+);
 
-router.delete('/:studentId', StudentController.deleteStudent)
+router.delete('/:studentId', StudentControllers.deleteStudent);
 
-// router.put("/:studentId",StudentController.updatedStudent)
+router.get('/', StudentControllers.getAllStudents);
 
-export const StudentRoute = router
+export const StudentRoutes = router;

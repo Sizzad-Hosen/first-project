@@ -4,6 +4,9 @@ import app from '../src/app'
 import mongoose from 'mongoose'
 import express from 'express'
 
+import { Server } from 'http'
+let server : Server;
+
 // Middleware
 app.use(express.json())
 app.use(cors())
@@ -15,7 +18,7 @@ async function main() {
     console.log('Database connected successfully')
 
     // Start the Express server
-    app.listen(config.port, () => {
+    server = app.listen(config.port, () => {
       console.log(`Example app listening on port ${config.port}`)
     })
   } catch (error) {
@@ -28,3 +31,18 @@ async function main() {
 
 // Start the application
 main()
+
+process.on('unhandledRejection', () => {
+  console.log(`😈 unahandledRejection is detected , shutting down ...`);
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+  process.exit(1);
+});
+
+process.on('uncaughtException', () => {
+  console.log(`😈 uncaughtException is detected , shutting down ...`);
+  process.exit(1);
+});

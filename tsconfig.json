@@ -1,6 +1,7 @@
 {
-  "include": ["src"], // which files to compile
-  "exclude": ["node_modules"], // which files to skip
+
+  "include": ["src"], 
+  "exclude": ["node_modules"], 
  
   "compilerOptions": {
     "moduleResolution": "Node16",
