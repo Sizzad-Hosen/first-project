@@ -78,8 +78,8 @@ const facultySchema = new Schema<TFaculty, FacultyModel>(
     profileImg: { type: String },
     academicDepartment: {
       type: Schema.Types.ObjectId,
-      required: [true, 'User id is required'],
-      ref: 'User',
+      required: [true, 'Academic Department is required'],
+      ref: 'AcademicDepartment',
     },
     isDeleted: {
       type: Boolean,
@@ -93,37 +93,29 @@ const facultySchema = new Schema<TFaculty, FacultyModel>(
   },
 );
 
-// generating full name
+// Virtual for full name
 facultySchema.virtual('fullName').get(function () {
-  return (
-    this?.name?.firstName +
-    '' +
-    this?.name?.middleName +
-    '' +
-    this?.name?.lastName
-  );
+  return `${this.name.firstName} ${this.name.middleName || ''} ${this.name.lastName}`.trim();
 });
 
-// filter out deleted documents
+// Filter out deleted
 facultySchema.pre('find', function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
 });
-
 facultySchema.pre('findOne', function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
 });
-
 facultySchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   next();
 });
 
-//checking if user is already exist!
+// Static method
 facultySchema.statics.isUserExists = async function (id: string) {
   const existingUser = await Faculty.findOne({ id });
-  return existingUser;
+  return existingUser; // returns null or the object
 };
 
 export const Faculty = model<TFaculty, FacultyModel>('Faculty', facultySchema);

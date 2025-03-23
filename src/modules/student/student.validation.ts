@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AcademicFaculty } from '../academicFaculty/academicFaculty.model';
 
 const createUserNameValidationSchema = z.object({
   firstName: z

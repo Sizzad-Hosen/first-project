@@ -4,6 +4,7 @@ import globalErrorHandler from './app/middlewares/globalErrorhandler'
 
 import router from './app/routes'
 import notFound from './app/middlewares/notFound'
+import { StudentRoutes } from './modules/student/student.route'
 
 const app: Application = express()
 

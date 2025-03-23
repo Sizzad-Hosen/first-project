@@ -1,30 +1,25 @@
 import express, { NextFunction, Request, Response } from 'express'
 
-import { AnyZodObject } from 'zod'
-
 import { AcademicSemesterValidations } from './academicSemester.validation'
+import { AcademicSemesterControllers } from './academicSemester.controller'
+import validateRequest from '../../app/middlewares/validateRequest'
 
 const router = express.Router()
 
-const validateRequest = (schema: AnyZodObject) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await schema.parseAsync({
-        body: req.body,
-      })
-    } catch (error) {
-      console.log(error)
-    }
 
-    next()
-  }
-}
 
 router.post(
-  '/create-academic-semester',
-  validateRequest(
-    AcademicSemesterValidations.createAcademicSemesterValidationSchema,
-  ),
+  '/create-academic-semester',AcademicSemesterControllers.createAcademicSemester
 )
+
+router.get('/:semesterId',AcademicSemesterControllers.getSingleAcademicSemester);
+
+router.patch('/:semesterId',validateRequest(
+    AcademicSemesterValidations.updateAcademicSemesterValidationSchema,
+  ),
+  AcademicSemesterControllers.updateAcademicSemester,
+);
+
+router.get('/',AcademicSemesterControllers.getAllAcademicSemesters);
 
 export const AcademicRoutes = router

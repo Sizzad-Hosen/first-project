@@ -1,20 +1,70 @@
-import { academicSemsterNameCodeMapper } from './academicSemester.constant'
+import QueryBuilder from '../../app/builder/QueryBuilder'
+import { AcademicSemesterSearchableFields, academicSemsterNameCodeMapper } from './academicSemester.constant'
+
 import {
   TAcademicSemester,
-  TAcademicSemesterCode,
-  TASemesterNameCodeMapper,
+
 } from './academicSemester.interface'
 import AcademicSemester from './academicSemester.model'
 
 const createAcademicSemesterIntoDB = async (payload: TAcademicSemester) => {
+
   if (academicSemsterNameCodeMapper[payload.name] !== payload.code) {
     throw new Error('invalid semster code')
   }
+
   const result = await AcademicSemester.create(payload)
+  console.log("result academic sem", result);
+  
 
   return
 }
 
-export const AcademicSemsterService = {
+const getAllAcademicSemestersFromDB = async (
+  query: Record<string, unknown>,
+) => {
+  const academicSemesterQuery = new QueryBuilder(AcademicSemester.find(), query)
+    .search(AcademicSemesterSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await academicSemesterQuery.modelQuery;
+  const meta = await academicSemesterQuery.countTotal()
+
+  return {
+    meta,
+    result,
+  };
+};
+
+const getSingleAcademicSemesterFromDB = async (id: string) => {
+  const result = await AcademicSemester.findById(id);
+  return result;
+};
+
+const updateAcademicSemesterIntoDB = async (
+  id: string,
+  payload: Partial<TAcademicSemester>,
+) => {
+  if (
+    payload.name &&
+    payload.code &&
+    academicSemsterNameCodeMapper[payload.name] !== payload.code
+  ) {
+    throw new Error('Invalid Semester Code');
+  }
+
+  const result = await AcademicSemester.findOneAndUpdate({ _id: id }, payload, {
+    new: true,
+  });
+  return result;
+};
+
+export const AcademicSemesterServices = {
   createAcademicSemesterIntoDB,
-}
+  getAllAcademicSemestersFromDB,
+  getSingleAcademicSemesterFromDB,
+  updateAcademicSemesterIntoDB,
+};

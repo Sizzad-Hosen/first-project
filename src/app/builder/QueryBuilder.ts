@@ -9,67 +9,73 @@ class QueryBuilder<T> {
     this.query = query;
   }
 
-  /**
-   * Search functionality
-   */
   search(searchableFields: string[]) {
-    const searchTerm = this.query.searchTerm as string; // Access the search term from the query
+    const searchTerm = this?.query?.searchTerm;
     if (searchTerm) {
       this.modelQuery = this.modelQuery.find({
-        $or: searchableFields.map((field) => ({
-          [field]: { $regex: searchTerm, $options: 'i' }, // Case-insensitive regex search
-        }) as FilterQuery<T>),
+        $or: searchableFields.map(
+          (field) =>
+            ({
+              [field]: { $regex: searchTerm, $options: 'i' },
+            }) as FilterQuery<T>,
+        ),
       });
     }
+
     return this;
   }
 
-  /**
-   * Filter functionality
-   */
   filter() {
-    const queryObj = { ...this.query };
+    const queryObj = { ...this.query }; // copy
 
+    // Filtering
     const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
-    excludeFields.forEach((el) => delete queryObj[el]); // Remove excluded fields from query object
+
+    excludeFields.forEach((el) => delete queryObj[el]);
+
     this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
 
     return this;
   }
 
-  /**
-   * Sort functionality
-   */
   sort() {
-    const sort = (this.query.sort as string) || '-createdAt'; // Default to sorting by creation date in descending order
-    this.modelQuery = this.modelQuery.sort(sort);
+    const sort =
+      (this?.query?.sort as string)?.split(',')?.join(' ') || '-createdAt';
+    this.modelQuery = this.modelQuery.sort(sort as string);
+
     return this;
   }
 
-  /**
-   * Pagination functionality
-   */
   paginate() {
-    const page = Number(this.query.page) || 1; // Default page is 1
-    const limit = Number(this.query.limit) || 10; // Default limit is 10
+    const page = Number(this?.query?.page) || 1;
+    const limit = Number(this?.query?.limit) || 10;
     const skip = (page - 1) * limit;
 
     this.modelQuery = this.modelQuery.skip(skip).limit(limit);
+
     return this;
   }
 
-  /**
-   * Field selection functionality
-   */
-
   fields() {
-    const fields = this.query.fields as string;
-    if (fields) {
-      this.modelQuery = this.modelQuery.select(fields?.split(',')?.join(' ')); // Select specified fields
-    } else {
-      this.modelQuery = this.modelQuery.select('-__v'); // Exclude version field by default
-    }
+    const fields =
+      (this?.query?.fields as string)?.split(',')?.join(' ') || '-__v';
+
+    this.modelQuery = this.modelQuery.select(fields);
     return this;
+  }
+  async countTotal() {
+    const totalQueries = this.modelQuery.getFilter();
+    const total = await this.modelQuery.model.countDocuments(totalQueries);
+    const page = Number(this?.query?.page) || 1;
+    const limit = Number(this?.query?.limit) || 10;
+    const totalPage = Math.ceil(total / limit);
+
+    return {
+      page,
+      limit,
+      total,
+      totalPage,
+    };
   }
 }
 

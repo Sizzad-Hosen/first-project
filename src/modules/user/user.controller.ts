@@ -7,10 +7,10 @@ import catchAsync from '../../app/utilis/catchAsync'
 const createStudent = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { password, student: studentData } = req.body
-    console.log('user', studentData)
+    console.log('Received student data:', studentData)
 
-    // Pass validated student data to service layer for creating user in the database
-    const result = await UserServices.createStudentIntoDB(studentData, password)
+    // 🚩 FIXED: Correct argument order
+    const result = await UserServices.createStudentIntoDB(password, studentData)
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -20,7 +20,35 @@ const createStudent = catchAsync(
     })
   },
 )
+const createFaculty = catchAsync(async (req, res) => {
+  const { password, faculty: facultyData } = req.body;
+
+  const result = await UserServices.createFacultyIntoDB(password, facultyData);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Faculty is created succesfully',
+    data: result,
+  });
+});
+
+const createAdmin = catchAsync(async (req, res) => {
+  const { password, admin: adminData } = req.body;
+
+  const result = await UserServices.createAdminIntoDB(password, adminData);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Admin is created succesfully',
+    data: result,
+  });
+});
+
 
 export const UserControllers = {
   createStudent,
+  createFaculty,
+  createAdmin,
 }
