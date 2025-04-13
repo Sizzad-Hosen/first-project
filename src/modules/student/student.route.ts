@@ -3,6 +3,8 @@ import express from 'express';
 import { StudentControllers } from './student.controller';
 import { updateStudentValidationSchema } from './student.validation';
 import validateRequest from '../../app/middlewares/validateRequest';
+import { USER_ROLE } from '../user/user.constant';
+import auth from '../../app/middlewares/auth';
 
 const router = express.Router();
 

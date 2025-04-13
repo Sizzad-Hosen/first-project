@@ -22,6 +22,8 @@ const getSingleStudent = catchAsync(async (req, res) => {
 
 
 const getAllStudents: RequestHandler = catchAsync(async (req, res) => {
+
+  console.log('refresh token', req.cookies)
   const result = await StudentServices.getAllStudentsFromDB(req.query);
 
   sendResponse(res, {

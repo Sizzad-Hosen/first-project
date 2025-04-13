@@ -11,12 +11,13 @@ import { Student } from "../student/student.model";
 import httpStatus from "http-status";
 import { TFaculty } from "../Faculty/faculty.interface";
 import { Faculty } from "../Faculty/faculty.model";
-import { error } from "console";
+
 import { Admin } from "../Admin/admin.model";
+import { verifyToken } from "../Auth/auth.utils";
+import { sendImageToCloudinary } from "../../app/utilis/sendImageToCloudinary";
 
-const createStudentIntoDB = async (password: string, payload: TStudent) => {
-  console.log("Received Payload:", payload); // Debug log
-
+const createStudentIntoDB = async (file:any,password: string, payload: TStudent) => {
+  
   // Check if payload and email exist
   if (!payload || !payload.email) {
     throw new AppError(
@@ -44,17 +45,17 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     throw new AppError(httpStatus.BAD_REQUEST, "Admission semester not found");
   }
 
-  // // Find academic department
-  // const academicDepartment = await AcademicDepartment.findById(
-  //   payload.academicDepartment
-  // );
+  // Find academic department
+  const academicDepartment = await AcademicDepartment.findById(
+    payload.academicDepartment
+  );
 
-  // if (!academicDepartment) {
-  //   throw new AppError(httpStatus.BAD_REQUEST, "Academic department not found");
-  // }
+  if (!academicDepartment) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Academic department not found");
+  }
 
-  // // Set faculty info based on department
-  // payload.academicFaculty = academicDepartment.academicFaculty;
+  // Set faculty info based on department
+  payload.academicFaculty = academicDepartment.academicFaculty;
 
   // Start transaction
   const session = await mongoose.startSession();
@@ -66,12 +67,12 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
      userData.id = await generateStudentId(admissionSemester);
 
     // === Optionally handle profile image upload ===
-    // if (file) {
-    //   const imageName = `${userData.id}${payload?.name?.firstName}`;
-    //   const path = file?.path;
-    //   const { secure_url } = await sendImageToCloudinary(imageName, path);
-    //   payload.profileImg = secure_url as string;
-    // }
+    if (file) {
+      const imageName = `${userData.id}${payload?.name?.firstName}`;
+      const path = file?.path;
+      const { secure_url } = await sendImageToCloudinary(imageName, path);
+      payload.profileImg = secure_url as string;
+    }
 
     // Create user (transaction-1)
     const newUser = await User.create([userData], { session });
@@ -83,6 +84,7 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     // Link student with user
     payload.id = newUser[0].id;
     payload.user = newUser[0]._id;
+
 
     // Create student (transaction-2)
     const newStudent = await Student.create([payload], { session });
@@ -121,6 +123,8 @@ const createFacultyIntoDB = async (password: string, payload: TFaculty) => {
 
   //set student role
   userData.role = 'faculty';
+  userData.email = payload.email;
+
 
   // find academic department info
   const academicDepartment = await AcademicDepartment.findById(
@@ -176,7 +180,8 @@ const createAdminIntoDB = async (password: string, payload: TFaculty) => {
 
   //set student role
   userData.role = 'admin';
-
+  userData.email = payload.email;
+  
   const session = await mongoose.startSession();
 
   try {
@@ -213,8 +218,53 @@ const createAdminIntoDB = async (password: string, payload: TFaculty) => {
   }
 };
 
+
+const getMe = async(token:string)=>{
+
+  const decode = verifyToken(token,config.jwt_access_secret as string)
+
+  const {userId, role}  = decode;
+console.log({userId,role});
+
+let result = null;
+
+if(role=='admin')
+{
+  result = await Admin.findOne({id:userId})
+}
+
+if(role=='student')
+{
+  result = await Student.findOne({id:userId})
+}
+
+if(role=='faculty')
+{
+  result = await Faculty.findOne({id:userId})
+}
+
+return result;
+
+
+}
+
+const changeStatus = async(id:string, payload:{status:string})=>{
+
+
+const result = await User.findByIdAndUpdate(id,payload,{
+  new:true
+})
+
+return result;
+
+
+}
+
 export const UserServices = {
   createStudentIntoDB,
   createFacultyIntoDB,
-  createAdminIntoDB
+  createAdminIntoDB,
+  getMe ,
+  changeStatus,
+
 };
