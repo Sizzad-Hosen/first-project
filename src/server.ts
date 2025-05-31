@@ -36,15 +36,12 @@ seedSuperAdmin();
 // Start the application
 main()
 
-process.on('unhandledRejection', () => {
-  console.log(`😈 unahandledRejection is detected , shutting down ...`);
-  if (server) {
-    server.close(() => {
-      process.exit(1);
-    });
-  }
+process.on('unhandledRejection', (reason) => {
+  console.error('😈 Unhandled Rejection:', reason);
+  // Optional: Close DB, Server, etc.
   process.exit(1);
 });
+
 
 process.on('uncaughtException', () => {
   console.log(`😈 uncaughtException is detected , shutting down ...`);

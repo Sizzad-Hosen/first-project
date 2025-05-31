@@ -8,18 +8,17 @@ import { createAdminValidationSchema } from '../Admin/admin.validation'
 import auth from '../../app/middlewares/auth'
 import { UserValidation } from './user.validation'
 
-import { upload } from '../../app/utilis/sendImageToCloudinary'
+import { parseFormDataWithJson, upload } from '../../app/utilis/sendImageToCloudinary'
 
 const router = express.Router()
 
 
 router.post(
   '/create-student',
-  // auth(USER_ROLE.admin),
-  upload.single('file'),
+  parseFormDataWithJson, // Add this middleware first
   validateRequest(createStudentValidationSchema),
-  UserControllers.createStudent,
-)
+  UserControllers.createStudent
+);
 
 router.post(
   '/create-faculty',
