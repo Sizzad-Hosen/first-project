@@ -13,7 +13,9 @@ declare module 'express-serve-static-core' {
 
 const auth = (...requiredRoles: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
+
     try {
+
       const authHeader = req.headers.authorization;
       console.log('Authorization Header:', authHeader);
 
@@ -24,11 +26,13 @@ const auth = (...requiredRoles: string[]) => {
       const token = authHeader.split(' ')[1]; // Extract token
 
       const decoded = jwt.verify(token, config.jwt_access_secret as string) as JwtPayload;
+
       console.log('Decoded Token:', decoded);
 
       const { role, userId, iat } = decoded;
 
       const user = await User.isUserExistsByCustomId(userId);
+      
       if (!user) throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
 
       if (user.isDeleted) throw new AppError(httpStatus.FORBIDDEN, 'User is deleted!');

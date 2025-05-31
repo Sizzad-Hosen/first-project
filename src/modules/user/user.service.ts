@@ -16,103 +16,86 @@ import { Admin } from "../Admin/admin.model";
 import { verifyToken } from "../Auth/auth.utils";
 import { sendImageToCloudinary } from "../../app/utilis/sendImageToCloudinary";
 
-const createStudentIntoDB = async (file:any,password: string, payload: TStudent) => {
-  
-  // Check if payload and email exist
-  if (!payload || !payload.email) {
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      "Invalid student payload: email is missing"
-    );
+const createStudentIntoDB = async (file: any, password: string, payload: TStudent) => {
+  // Validate required fields upfront
+  if (!payload?.email) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Email is required");
   }
 
-  // create a user object
-  const userData: Partial<TUser> = {};
+  // Create user data object
+  const userData: Partial<TUser> = {
+    password: password || config.default_password as string,
+    role: "student",
+    email: payload.email
+  };
 
-  // Set password: use default if not provided
-  userData.password = password || (config.default_password as string);
+  // Parallelize database lookups
+  const [admissionSemester, academicDepartment] = await Promise.all([
+    AcademicSemester.findById(payload.admissionSemester),
+    AcademicDepartment.findById(payload.academicDepartment)
+  ]);
 
-  // Set role and email
-  userData.role = "student";
-  userData.email = payload.email;
-
-  // Find academic semester info
-  const admissionSemester = await AcademicSemester.findById(
-    payload.admissionSemester
-  );
-
+  // Validate references
   if (!admissionSemester) {
     throw new AppError(httpStatus.BAD_REQUEST, "Admission semester not found");
   }
-
-  // Find academic department
-  const academicDepartment = await AcademicDepartment.findById(
-    payload.academicDepartment
-  );
-
   if (!academicDepartment) {
     throw new AppError(httpStatus.BAD_REQUEST, "Academic department not found");
   }
 
-  // Set faculty info based on department
+  // Set derived fields
   payload.academicFaculty = academicDepartment.academicFaculty;
 
-  // Start transaction
   const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    session.startTransaction();
-
     // Generate student ID
-     userData.id = await generateStudentId(admissionSemester);
+    userData.id = await generateStudentId(admissionSemester);
 
-    // === Optionally handle profile image upload ===
+    // Handle file upload if present
     if (file) {
       const imageName = `${userData.id}${payload?.name?.firstName}`;
-      const path = file?.path;
-      const { secure_url } = await sendImageToCloudinary(imageName, path);
-      payload.profileImg = secure_url as string;
+      const { secure_url } = await sendImageToCloudinary(imageName, file.path);
+      payload.profileImg = secure_url;
     }
 
-    // Create user (transaction-1)
-    const newUser = await User.create([userData], { session });
-
-    if (!newUser.length) {
+    // Create user and student in transaction
+    const [newUser] = await User.create([userData], { session });
+    if (!newUser) {
       throw new AppError(httpStatus.BAD_REQUEST, "Failed to create user");
     }
 
-    // Link student with user
-    payload.id = newUser[0].id;
-    payload.user = newUser[0]._id;
+    payload.id = newUser.id;
+    payload.user = newUser._id;
 
-
-    // Create student (transaction-2)
-    const newStudent = await Student.create([payload], { session });
-
-    if (!newStudent.length) {
+    const [newStudent] = await Student.create([payload], { session });
+    if (!newStudent) {
       throw new AppError(httpStatus.BAD_REQUEST, "Failed to create student");
     }
 
-    // Commit transaction
     await session.commitTransaction();
-    await session.endSession();
-
-    console.log("Student & User created successfully");
-    return newStudent[0]; // Return student object, not array
-  } catch (err: any) {
+    
+    return newStudent;
+  } catch (error) {
     await session.abortTransaction();
-    await session.endSession();
-
-    console.error("Error in createStudentIntoDB:", err);
-
-    // Throw detailed error message
+    
+    // Handle specific error types if needed
+    if (error instanceof AppError) {
+      throw error;
+    }
+    
+    // Log the full error for debugging
+    console.error("Student creation failed:", error);
+    
     throw new AppError(
       httpStatus.INTERNAL_SERVER_ERROR,
-      err.message || "Something went wrong while creating student"
+      error.message || "Student creation failed"
     );
+  } finally {
+    await session.endSession();
   }
 };
-
 
 const createFacultyIntoDB = async (password: string, payload: TFaculty) => {
   // create a user object

@@ -1,23 +1,33 @@
 import httpStatus from 'http-status'
-import { NextFunction, Request, Response } from 'express'
+
 import { UserServices } from './user.service'
 import sendResponse from '../../app/utilis/sendResponse'
 import catchAsync from '../../app/utilis/catchAsync'
 import AppError from '../../app/config/errors/AppError'
 
+
 const createStudent = catchAsync(async (req, res) => {
+
   const { password, student: studentData } = req.body;
+
+  console.log('body', req.body,req.file)
+
+  // Validate required fields at controller level
+  if (!studentData || !password) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Missing required fields');
+  }
 
   const result = await UserServices.createStudentIntoDB(
     req.file,
     password,
-    studentData,
+    studentData
   );
 
+  // Standardized success response
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: httpStatus.CREATED, // 201 for resource creation
     success: true,
-    message: 'Student is created successfully',
+    message: 'Student created successfully',
     data: result,
   });
 });

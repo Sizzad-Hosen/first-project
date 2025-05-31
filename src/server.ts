@@ -5,6 +5,8 @@ import mongoose from 'mongoose'
 import express from 'express'
 
 import { Server } from 'http'
+import seedSuperAdmin from './app/DB'
+
 let server : Server;
 
 // Middleware
@@ -15,6 +17,8 @@ async function main() {
   try {
     // Connect to MongoDB
     await mongoose.connect(config.database_url as string)
+    
+seedSuperAdmin();
     console.log('Database connected successfully')
 
     // Start the Express server

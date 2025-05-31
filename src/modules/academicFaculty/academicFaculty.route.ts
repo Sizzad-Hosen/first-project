@@ -2,11 +2,13 @@ import express from 'express'
 import { AcademicFacultyValidation } from './academicFaculty.validation'
 import { AcademicFacultyControllers } from './academicFaculty.controller'
 import validateRequest from '../../app/middlewares/validateRequest'
+import auth from '../../app/middlewares/auth'
 
 const router = express.Router()
 
 router.post(
   '/create-academic-faculty',
+
   validateRequest(
     AcademicFacultyValidation.createAcademicFacultyValidationSchema,
   ),

@@ -11,7 +11,11 @@ const app: Application = express()
 
 // Middleware to parse JSON request body
 app.use(cookieParser())
-app.use(cors({origin:'http://localhost:5000'}))
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:5000'],
+    credentials: true, // <-- Add this line
+  }));
+  
 app.use(express.json())
 
 // Application routes
