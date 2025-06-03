@@ -17,7 +17,10 @@ export type TUserName = {
   lastName: string;
 };
 
+
+
 export type TFaculty = {
+  academicFaculty: Types.ObjectId;
   id: string;
   user: Types.ObjectId;
   designation: string;
