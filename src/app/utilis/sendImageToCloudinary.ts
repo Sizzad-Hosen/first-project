@@ -4,9 +4,9 @@ import fs from 'fs';
 import multer from 'multer';
 
 import dotenv from 'dotenv';
-dotenv.config(); // Load .env
+dotenv.config(); 
 
-// ✅ Cloudinary config - Use only once with correct values
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -28,7 +28,9 @@ export const sendImageToCloudinary = (
           reject(error);
         }
         resolve(result as UploadApiResponse);
+
         // delete a file asynchronously
+        
         fs.unlink(path, (err) => {
           if (err) {
             console.log(err);
