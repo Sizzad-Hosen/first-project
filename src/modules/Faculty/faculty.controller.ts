@@ -1,4 +1,5 @@
-import { httpStatus } from 'http-status';
+import httpStatus from 'http-status';
+
 import catchAsync from "../../app/utilis/catchAsync";
 import sendResponse from "../../app/utilis/sendResponse";
 import { FacultyServices } from "./faculty.service";
@@ -16,19 +17,36 @@ const getSingleFaculty = catchAsync(async (req, res) => {
   });
 });
 
+
 const getAllFaculties = catchAsync(async (req, res) => {
   
-  const result = await FacultyServices.getAllFacultiesFromDB(req.query);
+  console.log('data faculty',req.query)
   
-console.log('data',result)
+  const result = await FacultyServices.getAllFacultiesFromDB(req.query);
+
+  if (!result || result.length === 0) {
+    return sendResponse(res, {
+      statusCode: httpStatus.NOT_FOUND,
+      success: false,
+      message: 'No faculties found',
+      data: null,
+    });
+  }
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Faculties are retrieved succesfully',
+    message: 'Faculties retrieved successfully',
     data: result,
+    // If paginated, include metadata:
+    // meta: {
+    //   page: Number(req.query.page) || 1,
+    //   limit: Number(req.query.limit) || 10,
+    //   total: totalCount,
+    // },
   });
 });
+
 
 const updateFaculty = catchAsync(async (req, res) => {
   const { id } = req.params;

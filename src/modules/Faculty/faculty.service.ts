@@ -7,19 +7,36 @@ import { Faculty } from './faculty.model';
 import AppError from '../../app/config/errors/AppError';
 import { User } from '../user/user.model';
 
-const getAllFacultiesFromDB = async (query: Record<string, unknown>) => {
-  const facultyQuery = new QueryBuilder(
-    Faculty.find().populate('academicDepartment'),
-    query,
-  )
-    .search(FacultySearchableFields)
-    .filter()
-    .sort()
-    .paginate()
-    .fields();
 
-  const result = await facultyQuery.modelQuery;
-  return result;
+interface IFacultyQuery {
+  searchTerm?: string;
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  fields?: string;
+  [key: string]: unknown; 
+}
+
+const getAllFacultiesFromDB = async (query: IFacultyQuery) => {
+  try {
+    const facultyQuery = new QueryBuilder(
+      Faculty.find().populate('academicDepartment'),
+      query,
+    )
+      .search(FacultySearchableFields)
+      .filter()
+      .sort()
+      .paginate()
+      .fields();
+
+    const result = await facultyQuery.modelQuery;
+
+    return result;
+
+  } catch (error) {
+    throw new Error(`Failed to fetch faculties: ${error instanceof Error ? error.message : String(error)}`);
+  }
 };
 
 const getSingleFacultyFromDB = async (id: string) => {
