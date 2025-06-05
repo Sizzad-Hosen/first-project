@@ -9,7 +9,7 @@ import { User } from '../../modules/user/user.model';
 declare global {
   namespace Express {
     interface Request {
-      userData?: JwtPayload;
+      user?: JwtPayload;
     }
   }
 }
@@ -18,18 +18,38 @@ const auth = (...requiredRoles: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       // 1. Check Authorization Header
-      const authHeader = req.headers.authorization;
-
-      console.log('token',authHeader)
+      const authHeader = req.headers.authorization || req.headers.Authorization;
       
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        throw new AppError(httpStatus.UNAUTHORIZED, 'No token provided or invalid format!');
+      console.log('token',authHeader)
+      if (!authHeader) {
+        console.error('Missing authorization header entirely');
+        throw new AppError(httpStatus.UNAUTHORIZED, 'No authorization header found');
       }
 
+         if (typeof authHeader !== 'string') {
+        console.error('Authorization header is not a string');
+        throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid authorization header');
+      }
+
+       if (!authHeader.startsWith('Bearer ')) {
+        console.error('Malformed authorization header:', authHeader);
+        throw new AppError(httpStatus.UNAUTHORIZED, 'Token must start with "Bearer "');
+      }
+      // if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      //   throw new AppError(httpStatus.UNAUTHORIZED, 'No token provided or invalid format!');
+      // }
+
+console.log('Raw Authorization header:', JSON.stringify(authHeader));
+console.log('Header starts with Bearer?:', authHeader.startsWith('Bearer '));
       // 2. Extract and Verify Token
-      const token = authHeader.split(' ')[1];
+      
+      const token = authHeader.substring(7); // Safer than split(' ')[1]
+
+      
       const decoded = jwt.verify(token, config.jwt_access_secret as string) as JwtPayload;
-    console.log('decoded', decoded)
+    
+      console.log('decoded', decoded)
+
       // 3. Validate Token Structure
       if (!decoded.userId || !decoded.role || !decoded.iat) {
         throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid token payload!');
@@ -39,7 +59,11 @@ const auth = (...requiredRoles: string[]) => {
 
       // 4. Check User Existence & Status
       const user = await User.isUserExistsByCustomId(userId);
+
+
       console.log('user',user)
+
+
       if (!user) {
         throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
       }
