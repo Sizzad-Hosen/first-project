@@ -2,6 +2,7 @@ import express from 'express';
 import { AuthControllers } from './auth.controller';
 import { AuthValidation } from './auth.validation';
 import validateRequest from '../../app/middlewares/validateRequest';
+import auth from '../../app/middlewares/auth';
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.post(
 
 router.post(
   '/change-password',
+  auth(),
   validateRequest(AuthValidation.changePasswordValidationSchema),
   AuthControllers.changePassword,
 );

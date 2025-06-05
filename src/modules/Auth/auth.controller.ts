@@ -3,9 +3,13 @@ import catchAsync from '../../app/utilis/catchAsync';
 import { AuthServices } from './auth.service';
 import sendResponse from '../../app/utilis/sendResponse';
 import config from '../../app/config';
+import { JwtPayload } from 'jsonwebtoken';
+import AppError from '../../app/config/errors/AppError';
 
 
 const loginUser = catchAsync(async (req, res) => {
+
+  console.log('body',req.body)
   const result = await AuthServices.loginUser(req.body);
   const { refreshToken, accessToken, needsPasswordChange } = result;
 
@@ -28,11 +32,22 @@ const loginUser = catchAsync(async (req, res) => {
 });
 
 const changePassword = catchAsync(async (req, res) => {
-  const passwordData = req.body;
-  console.log('Request Body:',req.user, passwordData);
+  console.log('Authorization Header:', req.headers.authorization); // Check if token exists
+  const { oldPassword, newPassword } = req.body;
+  
+  // Add proper type checking for req.user
+  if (!req.user || !req.user.userId) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'User authentication failed');
+  }
 
-  const result = await AuthServices.changePassword(req.user, passwordData);
-  console.log('Result:', result);
+  const user = req.user as JwtPayload;
+
+  console.log('user',user)
+  
+  const result = await AuthServices.changePassword(user, { 
+    oldPassword, 
+    newPassword 
+  });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

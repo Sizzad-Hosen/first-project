@@ -5,7 +5,7 @@ import { TLoginUser } from "./auth.interface";
 import httpStatus from "http-status";
 import { createToken, verifyToken } from "./auth.utils";
 import bcrypt from 'bcrypt';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import  { JwtPayload } from 'jsonwebtoken';
 import { sendEmail } from "../../app/utilis/sendEmail";
 
 const loginUser = async (payload: TLoginUser) => {
@@ -73,6 +73,8 @@ const changePassword = async (
   payload: { oldPassword: string; newPassword: string }
 ) => {
   // 1. Check if user exists
+
+  console.log('userdata',userData)
   const user = await User.isUserExistsByCustomId(userData.userId);
   console.log('User:', user);
 
